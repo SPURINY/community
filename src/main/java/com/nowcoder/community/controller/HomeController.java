@@ -46,6 +46,8 @@ public class HomeController {
             }
         }
         model.addAttribute("posts",posts);
+        System.out.println(page.getTotalRows()+"--totalRows");
+        //model.addAttribute("page",page);
         return "index";//模板文件路径
     }
 
