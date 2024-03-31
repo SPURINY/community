@@ -1,8 +1,11 @@
 package com.nowcoder.community.controller;
 
+import com.google.code.kaptcha.Producer;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,12 +13,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Map;
 
 @Controller
 public class LoginController implements CommunityConstant {
+
+    private static final Logger logger= LoggerFactory.getLogger(LoginController.class);//打日志
     @Autowired
     private UserService userService;
+    @Autowired
+    private Producer kaptchaProducer;//注入
 
     @RequestMapping(path="register",method = RequestMethod.GET)
     public String getRegisterPage(){
@@ -65,6 +79,25 @@ public class LoginController implements CommunityConstant {
         }
         return "/site/operate-result";//中间过渡页面
 
+    }
+
+    @RequestMapping(path="kaptcha",method=RequestMethod.GET)
+    public void kaptcha(HttpServletResponse response, HttpSession session){
+        //不需要返回页面或字符串，利用rsponse，所以返回值void
+        //生成的验证码放在客户端不安全，放到服务器，所以有多个请求间的联系，用cookie和session技术
+        //生成验证码
+        String text = kaptchaProducer.createText();
+        BufferedImage image = kaptchaProducer.createImage(text);
+        //把文字验证码存到session
+        session.setAttribute("kaptcha",text);
+        //图片给浏览器显示出来
+        response.setContentType("image/png");
+        try {
+            ServletOutputStream stream = response.getOutputStream();//图片用字节流比较好
+            ImageIO.write(image,"png",stream);
+        } catch (IOException e) {
+            logger.error("相应验证码失败"+e.getMessage());
+        }
     }
 
 

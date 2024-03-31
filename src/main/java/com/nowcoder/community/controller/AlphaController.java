@@ -1,14 +1,17 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.service.AlphaService;
+import com.nowcoder.community.util.CommunityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -142,5 +145,37 @@ public class AlphaController {
 
         return list;
     }
+
+    @RequestMapping(path="/cookie/set",method = RequestMethod.GET)
+    @ResponseBody//返回字符串，不用视图解释器了/即不返回页面
+    public String setCookie(HttpServletResponse response){//cookie加到响应头里
+        Cookie cookie = new Cookie("code", CommunityUtil.getUUID());//只有有参构造，参数为k-v
+        //设置cookie有效的范围(用不到的时候就不传cookie，节约资源)
+        cookie.setPath("/community/alpha");
+        cookie.setMaxAge(60*10);
+        response.addCookie(cookie);
+        return "ok";
+    }
+    @RequestMapping(path="/cookie/get",method = RequestMethod.GET)
+    @ResponseBody//返回字符串，不用视图解释器了/即不返回页面
+    public String getCookie(@CookieValue("code")String code){//取cookie要遍历数组，麻烦；用注解取名为“code”cookie赋值给形参code
+        System.out.println(code);//如果想让模板用，就加到model对象里
+        return "get ok";
+    }
+    @RequestMapping(path="/session/set",method = RequestMethod.GET)
+    @ResponseBody//返回字符串，不用视图解释器了/即不返回页面
+    public String setSession(HttpSession session){///session会自动注入
+        session.setAttribute("age",1);
+        session.setAttribute("name","purin");
+        return "setsession ok";
+    }
+    @RequestMapping(path="/session/get",method = RequestMethod.GET)
+    @ResponseBody//返回字符串，不用视图解释器了/即不返回页面
+    public String getSession(HttpSession session){
+        System.out.println(session.getAttribute("age"));
+        System.out.println(session.getAttribute("name"));
+        return "getsession ok";
+    }
+
 
 }
