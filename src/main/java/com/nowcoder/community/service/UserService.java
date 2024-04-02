@@ -1,6 +1,8 @@
 package com.nowcoder.community.service;
 
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.dao.UserMapper;
+import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
@@ -20,6 +22,8 @@ import java.util.Random;
 @Service
 public class UserService implements CommunityConstant {
     //实现常量接口，因为要用激活常量
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
     @Autowired
     private UserMapper userMapper;
     @Autowired
@@ -108,6 +112,46 @@ public class UserService implements CommunityConstant {
             //因为要修改数据库信息，所以用mapper，我差点就写成user.setStatus了，有个毛用
             return ACTIVATION_SUCCESSS;
         }else return ACTIVATION_FAILURE;
+    }
+
+    public Map<String,Object> login(String username,String password,int expiredSeconds){
+        Map<String, Object> map = new HashMap<>();
+        //空串判断
+        if(StringUtils.isBlank(username)){
+            map.put("usernameMsg","用户名不能为空");
+            return map;
+        }
+        if(StringUtils.isBlank(password)){
+            map.put("passwordMsg","密码不能为空");
+            return map;
+        }
+        //合法性判断
+        User user = userMapper.selectByName(username);
+        if(user==null){
+            map.put("usernameMsg","用户名错误");
+            return map;
+        }
+        if(user.getStatus()==0){
+            map.put("usernameMsg","账号未激活");
+            return map;
+        }
+        String psw=CommunityUtil.md5(password+user.getSalt());
+        if(!psw.equals(user.getPassword())){
+            map.put("passwordMsg","密码错误");
+            return map;
+        }
+        //成功登录
+        //生成登陆凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setTicket(CommunityUtil.getUUID());
+        loginTicket.setUserId(user.getId());
+        loginTicket.setExpired(new Date(System.currentTimeMillis()+expiredSeconds*1000));
+        loginTicket.setStatus(0);
+        loginTicketMapper.insertLoginTicket(loginTicket);
+        //的能录成功后，把凭证发给客户端（加进map里）
+        map.put("ticket",loginTicket.getTicket());//凭证放进map，传回客户端
+
+        return map;
     }
 
 

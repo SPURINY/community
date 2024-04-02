@@ -1,12 +1,15 @@
 package com.nowcoder.community.controller;
 
 import com.google.code.kaptcha.Producer;
+import com.nowcoder.community.dao.LoginTicketMapper;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -26,10 +30,14 @@ import java.util.Map;
 public class LoginController implements CommunityConstant {
 
     private static final Logger logger= LoggerFactory.getLogger(LoginController.class);//打日志
+
     @Autowired
     private UserService userService;
     @Autowired
     private Producer kaptchaProducer;//注入
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
 
     @RequestMapping(path="register",method = RequestMethod.GET)
     public String getRegisterPage(){
@@ -100,6 +108,36 @@ public class LoginController implements CommunityConstant {
         }
     }
 
+    @RequestMapping(path="login",method=RequestMethod.POST)
+    public String login(String username,String password,String code,boolean remember,Model model,HttpSession session,HttpServletResponse response){
+        //从表单拿到形参这些数据，code验证码，remem是否勾选”记住我“-->expired时间会长一些
+        //之前kaptcha生成的验证码放到了session里，所以参数要用HttpSession来取验证码，来和用户输入的验证码比对
+        //如果登陆成功，服务器要把ticket交给客户端保存，利用cookie，所以参数要写HttpServletResponse
+
+        //检查验证码
+        String kaptcha =(String) session.getAttribute("kaptcha");
+        if(StringUtils.isBlank(kaptcha)||StringUtils.isBlank(code)||!kaptcha.equalsIgnoreCase(code)){
+            model.addAttribute("codeMsg","验证码错误");
+            return "/site/login";
+        }
+        //检查账号密码（调用业务层）
+        int expiredSeconds=remember?REMEMBER_EXPIRED_SECONDS:DEFAULT_EXPIRED_SECONDS;
+        Map<String, Object> map = userService.login(username, password, expiredSeconds);
+        if(map.containsKey("ticket")){//登陆成功
+            Cookie cookie = new Cookie("ticket", map.get("ticket").toString());//用cookie存ticket
+            cookie.setMaxAge(expiredSeconds);
+            cookie.setPath(contextPath);
+            response.addCookie(cookie);
+
+            return "index";
+        }else{
+            model.addAttribute("usernameMsg",map.get("usernameMsg"));
+            model.addAttribute("passwordMsg",map.get("passwordMsg"));
+            return "/site/login";
+        }
+
+
+    }
 
 
 }
