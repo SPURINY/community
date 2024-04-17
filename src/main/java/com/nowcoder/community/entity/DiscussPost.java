@@ -3,30 +3,16 @@ package com.nowcoder.community.entity;
 import java.util.Date;
 
 public class DiscussPost {
-    private  int id;
-    private  int userId;
-    private  String title;
-    private String context;
-    private int type;
-    private  int status;
-    private Date createTime;
-    private int commentCount;//该帖子对应，其实是冗余数据，但为了减少访问表存上了评论数量
-    private double score;
 
-    @Override
-    public String toString() {
-        return "DiscussPost{" +
-                "id=" + id +
-                ", userId=" + userId +
-                ", title='" + title + '\'' +
-                ", context='" + context + '\'' +
-                ", type=" + type +
-                ", status=" + status +
-                ", createTime=" + createTime +
-                ", commentCount=" + commentCount +
-                ", score=" + score +
-                '}';
-    }
+    private int id;
+    private int userId;
+    private String title;
+    private String content;
+    private int type;
+    private int status;
+    private Date createTime;
+    private int commentCount;
+    private double score;
 
     public int getId() {
         return id;
@@ -52,12 +38,12 @@ public class DiscussPost {
         this.title = title;
     }
 
-    public String getContext() {
-        return context;
+    public String getContent() {
+        return content;
     }
 
-    public void setContext(String context) {
-        this.context = context;
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public int getType() {
@@ -98,5 +84,20 @@ public class DiscussPost {
 
     public void setScore(double score) {
         this.score = score;
+    }
+
+    @Override
+    public String toString() {
+        return "DiscussPost{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                ", type=" + type +
+                ", status=" + status +
+                ", createTime=" + createTime +
+                ", commentCount=" + commentCount +
+                ", score=" + score +
+                '}';
     }
 }

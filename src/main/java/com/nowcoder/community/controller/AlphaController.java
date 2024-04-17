@@ -146,36 +146,55 @@ public class AlphaController {
         return list;
     }
 
-    @RequestMapping(path="/cookie/set",method = RequestMethod.GET)
-    @ResponseBody//返回字符串，不用视图解释器了/即不返回页面
-    public String setCookie(HttpServletResponse response){//cookie加到响应头里
-        Cookie cookie = new Cookie("code", CommunityUtil.getUUID());//只有有参构造，参数为k-v
-        //设置cookie有效的范围(用不到的时候就不传cookie，节约资源)
+    // cookie示例
+
+    @RequestMapping(path = "/cookie/set", method = RequestMethod.GET)
+    @ResponseBody
+    public String setCookie(HttpServletResponse response) {
+        // 创建cookie
+        Cookie cookie = new Cookie("code", CommunityUtil.generateUUID());
+        // 设置cookie生效的范围
         cookie.setPath("/community/alpha");
-        cookie.setMaxAge(60*10);
+        // 设置cookie的生存时间
+        cookie.setMaxAge(60 * 10);
+        // 发送cookie
         response.addCookie(cookie);
-        return "ok";
-    }
-    @RequestMapping(path="/cookie/get",method = RequestMethod.GET)
-    @ResponseBody//返回字符串，不用视图解释器了/即不返回页面
-    public String getCookie(@CookieValue("code")String code){//取cookie要遍历数组，麻烦；用注解取名为“code”cookie赋值给形参code
-        System.out.println(code);//如果想让模板用，就加到model对象里
-        return "get ok";
-    }
-    @RequestMapping(path="/session/set",method = RequestMethod.GET)
-    @ResponseBody//返回字符串，不用视图解释器了/即不返回页面
-    public String setSession(HttpSession session){///session会自动注入
-        session.setAttribute("age",1);
-        session.setAttribute("name","purin");
-        return "setsession ok";
-    }
-    @RequestMapping(path="/session/get",method = RequestMethod.GET)
-    @ResponseBody//返回字符串，不用视图解释器了/即不返回页面
-    public String getSession(HttpSession session){
-        System.out.println(session.getAttribute("age"));
-        System.out.println(session.getAttribute("name"));
-        return "getsession ok";
+
+        return "set cookie";
     }
 
+    @RequestMapping(path = "/cookie/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getCookie(@CookieValue("code") String code) {
+        System.out.println(code);
+        return "get cookie";
+    }
+
+    // session示例
+
+    @RequestMapping(path = "/session/set", method = RequestMethod.GET)
+    @ResponseBody
+    public String setSession(HttpSession session) {
+        session.setAttribute("id", 1);
+        session.setAttribute("name", "Test");
+        return "set session";
+    }
+
+    @RequestMapping(path = "/session/get", method = RequestMethod.GET)
+    @ResponseBody
+    public String getSession(HttpSession session) {
+        System.out.println(session.getAttribute("id"));
+        System.out.println(session.getAttribute("name"));
+        return "get session";
+    }
+
+    //ajax示例
+    @RequestMapping(path="/ajax",method = RequestMethod.POST)
+    @ResponseBody
+    public String ajax(String name,int age){
+        System.out.println(name);
+        System.out.println(age);
+        return CommunityUtil.getJSONString(0,"ok");
+    }
 
 }

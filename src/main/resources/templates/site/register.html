@@ -67,13 +67,11 @@
 					<div class="form-group row">
 						<label for="username" class="col-sm-2 col-form-label text-right">账号:</label>
 						<div class="col-sm-10">
-							<!--th:value默认值，如果失败一次后跳回这个页面就可以取到model里存的user，就不用再输入了-->
 							<input type="text"
 								   th:class="|form-control ${usernameMsg!=null?'is-invalid':''}|"
 								   th:value="${user!=null?user.username:''}"
 								   id="username" name="username" placeholder="请输入您的账号!" required>
 							<div class="invalid-feedback" th:text="${usernameMsg}">
-								<!--class="invalid-feedback只有非法时才显示-->
 								该账号已存在!
 							</div>
 						</div>
@@ -90,7 +88,7 @@
 							</div>							
 						</div>
 					</div>
-					<div class="form-group row mt-4"><!--确认密码不用传给后台-->
+					<div class="form-group row mt-4">
 						<label for="confirm-password" class="col-sm-2 col-form-label text-right">确认密码:</label>
 						<div class="col-sm-10">
 							<input type="password" class="form-control"
